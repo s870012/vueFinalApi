@@ -1,19 +1,142 @@
 <script setup>
-import TheHeader from '@/components/TheHeader.vue';
+import TheHeader from '@/components/TheHeader.vue'
+import axios from 'axios'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const api = import.meta.env.VITE_BASE_URL
+const router = useRouter()
+
+// 驗證 + 取得代辦事項
+const token = document.cookie.replace(/(?:^|.*;\s*)TodoToken\s*=\s*([^;]*).*$/i, '$1')
+onMounted(async () => {
+  try {
+    await axios.get(`${api}users/checkout`, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    getTodo()
+  } catch (error) {
+    console.log('錯誤', error)
+    router.push('/signup')
+  }
+})
+
+// 取得Todo
+const todoList = ref([])
+const getTodo = async () => {
+  try {
+    const res = await axios.get(`${api}todos/`, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    todoList.value = res.data.data.map((todo) => ({
+      ...todo,
+      isEdit: false,
+    }))
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// 新增Todo
+const todoContent = ref({
+  content: '',
+})
+const addTodo = async (todoContent) => {
+  try {
+    await axios.post(`${api}todos/`, todoContent, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    getTodo()
+    todoContent.content = ''
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// 刪除 Todo
+const deleteTodo = async (id) => {
+  try {
+    await axios.delete(`${api}todos/${id}`, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    getTodo()
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// editTodo
+const tempTodo = ref({
+  content: '',
+})
+const toggleEdit = (todo) => {
+  const index = todoList.value.findIndex((i) => i.id === todo.id)
+  todoList.value[index].isEdit = true
+  tempTodo.value = todo.content
+}
+
+const editTodo = async (todo) => {
+  const index = todoList.value.findIndex((i) => i.id === todo.id)
+  todoList.value[index].content = tempTodo.value
+
+  try {
+    await axios.put(`${api}todos/${todo.id}`, todo, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    getTodo()
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const closeEdit = (id) => {
+  const index = todoList.value.findIndex((i) => i.id === id)
+  todoList.value[index].isEdit = false
+}
+
+// todo status
+const toggleTodo = async (todo) => {
+  try {
+    await axios.patch(`${api}todos/${todo.id}/toggle`, null, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    console.log('代辦事項完成')
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// 登出
+const signOutTodo = async () => {
+  try {
+    await axios.post(`${api}users/sign_out`, null, {
+      headers: {
+        Authorization: token,
+      },
+    })
+    document.cookie = 'TodoToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
+    router.push('/')
+  } catch (error) {
+    console.log(error)
+  }
+}
 </script>
 
 <template>
-  <TheHeader />
   <div id="todoListPage" class="bg-half">
-    <nav>
-      <h1><a href="#">ONLINE TODO LIST</a></h1>
-      <ul>
-        <li class="todo_sm">
-          <a href="#"><span>王小明的代辦</span></a>
-        </li>
-        <li><a href="#loginPage">登出</a></li>
-      </ul>
-    </nav>
+    <TheHeader />
     <div class="container todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">

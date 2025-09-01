@@ -8,13 +8,11 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      children: [
-        {
-          path: '/todo',
-          name: 'todo',
-          component: () => import('../views/TodoView.vue'),
-        },
-      ],
+    },
+    {
+      path: '/todo',
+      name: 'todo',
+      component: () => import('../views/TodoView.vue'),
     },
   ],
 })
