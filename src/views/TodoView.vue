@@ -1,6 +1,9 @@
-<script setup></script>
+<script setup>
+import TheHeader from '@/components/TheHeader.vue';
+</script>
 
 <template>
+  <TheHeader />
   <div id="todoListPage" class="bg-half">
     <nav>
       <h1><a href="#">ONLINE TODO LIST</a></h1>
@@ -11,7 +14,7 @@
         <li><a href="#loginPage">登出</a></li>
       </ul>
     </nav>
-    <div class="conatiner todoListPage vhContainer">
+    <div class="container todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
           <input type="text" placeholder="請輸入待辦事項" />
