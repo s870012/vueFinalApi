@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios';
+import axios from 'axios'
 import { RouterLink, useRouter } from 'vue-router'
 
 const api = import.meta.env.VITE_BASE_URL
@@ -28,7 +28,7 @@ const signOutTodo = async () => {
       <h1><RouterLink to="/">ONLINE TODO LIST</RouterLink></h1>
       <ul>
         <li class="todo_sm">
-          <RouterLink to="/todo"><span>王小明的代辦</span></RouterLink>
+          <RouterLink to="/todo"><span>的代辦</span></RouterLink>
         </li>
         <li><a href="#loginPage" @click.prevent="signOutTodo">登出</a></li>
       </ul>

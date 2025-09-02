@@ -23,6 +23,11 @@ const loginField = ref({
   password: '',
 })
 
+const errorLoginField = ref({
+  email: '',
+  password: '',
+})
+
 const loginRes = ref('')
 const handleLogin = async (loginField) => {
   try {
@@ -35,6 +40,20 @@ const handleLogin = async (loginField) => {
     alert('登入失敗')
   }
 }
+
+watch(
+  loginField,
+  (newLogin) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailPattern.test(newLogin.email)) {
+      errorLoginField.value.email = '請輸入正確的 E-mail 格式'
+    } else {
+      errorLoginField.value.email = ''
+    }
+  },
+
+  { deep: true },
+)
 
 // 註冊
 const registerField = ref({
@@ -140,7 +159,7 @@ const handleRegister = async (registerField) => {
             v-model="loginField.email"
             required
           />
-          <span>此欄位不可留空</span>
+          <span v-if="errorLoginField.email">{{ errorLoginField.email }}</span>
           <label class="formControls_label" for="pwd">密碼</label>
           <input
             class="formControls_input"

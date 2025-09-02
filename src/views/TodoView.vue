@@ -1,7 +1,10 @@
 <script setup>
-import TheHeader from '@/components/TheHeader.vue'
 import axios from 'axios'
-import { ref, onMounted } from 'vue'
+
+import TheHeader from '@/components/TheHeader.vue'
+import empty from '@/assets/images/empty 1.png'
+
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const api = import.meta.env.VITE_BASE_URL
@@ -25,21 +28,28 @@ onMounted(async () => {
 
 // 取得Todo
 const todoList = ref([])
-const getTodo = async () => {
+const getTodo = async (status) => {
   try {
     const res = await axios.get(`${api}todos/`, {
       headers: {
         Authorization: token,
       },
     })
-    todoList.value = res.data.data.map((todo) => ({
-      ...todo,
-      isEdit: false,
-    }))
+    todoList.value = res.data.data
+    if (status === 'finish') {
+      todoList.value = todoList.value.filter((todo) => todo.status !== false)
+    } else if (status === 'finishYet') {
+      todoList.value = todoList.value.filter((todo) => todo.status !== true)
+    }
   } catch (error) {
     console.log(error)
   }
 }
+
+// 待完成個數
+const todoNum = computed(() => {
+  return todoList.value.filter((todo) => todo.status !== true).length
+})
 
 // 新增Todo
 const todoContent = ref({
@@ -82,37 +92,44 @@ const toggleTodo = async (todo) => {
       },
     })
     todo.status = res.data.status
-    console.log(todo.status);
   } catch (error) {
     console.log(error)
   }
 }
-
 </script>
 
 <template>
   <div id="todoListPage" class="bg-half">
-    <TheHeader :token="token"/>
+    <TheHeader :token="token" />
     <div class="container todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
-          <input type="text" placeholder="請輸入待辦事項" v-model="todoContent.content"/>
+          <input type="text" placeholder="請輸入待辦事項" v-model="todoContent.content" />
           <a href="#" @click.prevent="addTodo(todoContent)">
             <i class="bi bi-plus-lg"></i>
           </a>
         </div>
-        <div class="todoList_list">
+        <div v-if="todoList.length < 1">
+          <p class="text-center fs-5 mt-5 mb-4">目前無代辦事項</p>
+          <img :src="empty" alt="" class="w-auto d-block mx-auto object-fit-cover" />
+        </div>
+        <div class="todoList_list" v-else>
           <ul class="todoList_tab">
-            <li><a href="#" class="active">全部</a></li>
-            <li><a href="#">待完成</a></li>
-            <li><a href="#">已完成</a></li>
+            <li><a href="#" class="active" @click.prevent="getTodo">全部</a></li>
+            <li><a href="#" @click.prevent="getTodo('finishYet')">待完成</a></li>
+            <li><a href="#" @click.prevent="getTodo('finish')">已完成</a></li>
           </ul>
           <div class="todoList_items">
             <ul class="todoList_item">
               <li v-for="todo in todoList" :key="todo.id">
                 <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" @click="toggleTodo(todo)" :disabled="todo.status === true"/>
-                  <span>{{todo.content}}</span>
+                  <input
+                    class="todoList_input"
+                    type="checkbox"
+                    @click="toggleTodo(todo)"
+                    :disabled="todo.status === true"
+                  />
+                  <span>{{ todo.content }}</span>
                 </label>
                 <button type="button" class="btn" @click.prevent="deleteTodo(todo.id)">
                   <i class="bi bi-x-lg"></i>
@@ -120,7 +137,7 @@ const toggleTodo = async (todo) => {
               </li>
             </ul>
             <div class="todoList_statistics">
-              <p>5 個已完成項目</p>
+              <p>{{ todoNum }} 個待完成項目</p>
             </div>
           </div>
         </div>
