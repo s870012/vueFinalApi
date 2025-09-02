@@ -19,7 +19,7 @@ onMounted(async () => {
     getTodo()
   } catch (error) {
     console.log('錯誤', error)
-    router.push('/signup')
+    router.push('/')
   }
 })
 
@@ -73,76 +73,32 @@ const deleteTodo = async (id) => {
   }
 }
 
-// editTodo
-const tempTodo = ref({
-  content: '',
-})
-const toggleEdit = (todo) => {
-  const index = todoList.value.findIndex((i) => i.id === todo.id)
-  todoList.value[index].isEdit = true
-  tempTodo.value = todo.content
-}
-
-const editTodo = async (todo) => {
-  const index = todoList.value.findIndex((i) => i.id === todo.id)
-  todoList.value[index].content = tempTodo.value
-
-  try {
-    await axios.put(`${api}todos/${todo.id}`, todo, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    getTodo()
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-const closeEdit = (id) => {
-  const index = todoList.value.findIndex((i) => i.id === id)
-  todoList.value[index].isEdit = false
-}
-
 // todo status
 const toggleTodo = async (todo) => {
   try {
-    await axios.patch(`${api}todos/${todo.id}/toggle`, null, {
+    const res = await axios.patch(`${api}todos/${todo.id}/toggle`, null, {
       headers: {
         Authorization: token,
       },
     })
-    console.log('代辦事項完成')
+    todo.status = res.data.status
+    console.log(todo.status);
   } catch (error) {
     console.log(error)
   }
 }
 
-// 登出
-const signOutTodo = async () => {
-  try {
-    await axios.post(`${api}users/sign_out`, null, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    document.cookie = 'TodoToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
-    router.push('/')
-  } catch (error) {
-    console.log(error)
-  }
-}
 </script>
 
 <template>
   <div id="todoListPage" class="bg-half">
-    <TheHeader />
+    <TheHeader :token="token"/>
     <div class="container todoListPage vhContainer">
       <div class="todoList_Content">
         <div class="inputBox">
-          <input type="text" placeholder="請輸入待辦事項" />
-          <a href="#">
-            <i class="fa fa-plus"></i>
+          <input type="text" placeholder="請輸入待辦事項" v-model="todoContent.content"/>
+          <a href="#" @click.prevent="addTodo(todoContent)">
+            <i class="bi bi-plus-lg"></i>
           </a>
         </div>
         <div class="todoList_list">
@@ -153,59 +109,14 @@ const signOutTodo = async () => {
           </ul>
           <div class="todoList_items">
             <ul class="todoList_item">
-              <li>
+              <li v-for="todo in todoList" :key="todo.id">
                 <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>把冰箱發霉的檸檬拿去丟</span>
+                  <input class="todoList_input" type="checkbox" @click="toggleTodo(todo)" :disabled="todo.status === true"/>
+                  <span>{{todo.content}}</span>
                 </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>打電話叫媽媽匯款給我</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>整理電腦資料夾</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>繳電費水費瓦斯費</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>約vicky禮拜三泡溫泉</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-              <li>
-                <label class="todoList_label">
-                  <input class="todoList_input" type="checkbox" value="true" />
-                  <span>約ada禮拜四吃晚餐</span>
-                </label>
-                <a href="#">
-                  <i class="fa fa-times"></i>
-                </a>
+                <button type="button" class="btn" @click.prevent="deleteTodo(todo.id)">
+                  <i class="bi bi-x-lg"></i>
+                </button>
               </li>
             </ul>
             <div class="todoList_statistics">

@@ -81,7 +81,7 @@ const handleRegister = async (registerField) => {
       </div>
       <!-- 註冊 -->
       <div v-if="isRegister">
-        <form class="formControls" action="index.html">
+        <form class="formControls" action="submit">
           <h2 class="formControls_txt">註冊帳號</h2>
           <label class="formControls_label" for="email">Email</label>
           <input
