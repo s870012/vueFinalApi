@@ -80,6 +80,34 @@ const handleRegister = async (registerField) => {
     alert('註冊失敗')
   }
 }
+
+const errorRegisField = ref({
+  email: '',
+  password: '',
+  nickname: '',
+})
+
+watch(
+  registerField,
+  (newRegis) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailPattern.test(newRegis.email)) {
+      errorRegisField.value.email = '請輸入正確的 E-mail 格式'
+    } else {
+      newRegis.value.email = ''
+    }
+
+    if (newRegis.length < 2) {
+      errorRegisField.value.nickname = '請至少輸入 2 個字'
+    } else {
+      errorRegisField.value.nickname = ''
+    }
+  },
+
+  { deep: true },
+)
+
+
 </script>
 
 <template>
@@ -111,6 +139,7 @@ const handleRegister = async (registerField) => {
             v-model="registerField.email"
             required
           />
+          <span v-if="errorRegisField.email">{{ errorRegisField.email }}</span>
           <label class="formControls_label" for="name">您的暱稱</label>
           <input
             class="formControls_input"
@@ -119,6 +148,7 @@ const handleRegister = async (registerField) => {
             placeholder="請輸入您的暱稱"
             v-model="registerField.nickname"
           />
+          <span v-if="errorRegisField.nickname">{{ errorRegisField.nickname }}</span>
           <label class="formControls_label" for="pwd">密碼</label>
           <input
             class="formControls_input"
@@ -128,6 +158,7 @@ const handleRegister = async (registerField) => {
             v-model="registerField.password"
             required
           />
+          <span v-if="errorRegisField.password">{{ errorRegisField.password }}</span>
           <label class="formControls_label" for="pwd">再次輸入密碼</label>
           <input
             class="formControls_input"
@@ -143,6 +174,7 @@ const handleRegister = async (registerField) => {
             @click="handleRegister(registerField)"
             value="註冊帳號"
           />
+          <span v-if="errorRegisField.password">{{ errorRegisField.password }}</span>
           <a class="formControls_btnLink" href="#" @click.prevent="toggleRegister">登入</a>
         </form>
       </div>
