@@ -4,7 +4,10 @@ import { RouterLink, useRouter } from 'vue-router'
 
 const api = import.meta.env.VITE_BASE_URL
 const router = useRouter()
-const props = defineProps(['token'])
+const props = defineProps({
+  token: { type: String },
+  nickname: { type: String },
+})
 
 // 登出
 const signOutTodo = async () => {
@@ -28,7 +31,9 @@ const signOutTodo = async () => {
       <h1><RouterLink to="/">ONLINE TODO LIST</RouterLink></h1>
       <ul>
         <li class="todo_sm">
-          <RouterLink to="/todo"><span>的代辦</span></RouterLink>
+          <RouterLink to="/todo"
+            ><span>{{ props.nickname }} 的代辦</span></RouterLink
+          >
         </li>
         <li><a href="#loginPage" @click.prevent="signOutTodo">登出</a></li>
       </ul>

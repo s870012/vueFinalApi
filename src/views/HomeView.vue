@@ -1,11 +1,38 @@
 <script setup>
 import axios from 'axios'
+import MessageToast from '@/components/MessageToast.vue'
 
-import { ref, watch } from 'vue'
+import { ref, watch, provide } from 'vue'
 import { useRouter } from 'vue-router'
 
 const api = import.meta.env.VITE_BASE_URL
 const router = useRouter()
+
+// message
+const messageText = ref([])
+const isShow = ref(false)
+
+provide('message', {
+  messageText,
+  isShow,
+})
+
+const createMessage = (text, status) => {
+  const id = new Date().getTime()
+  messageText.value.push({
+    id,
+    text,
+    status,
+  })
+  isShow.value = true
+  setTimeout(() => {
+    const index = messageText.value.findIndex((i) => i.id === id)
+    if (index !== -1) {
+      messageText.value.splice(index, 1)
+    }
+    isShow.value = false
+  }, 3000)
+}
 
 // 登入、註冊切換
 const isRegister = ref(false)
@@ -37,10 +64,11 @@ const handleLogin = async (loginField) => {
     router.push('/todo')
   } catch (error) {
     console.log('錯誤', error)
-    alert('登入失敗')
+    createMessage('登入失敗', false)
   }
 }
 
+// 登入監聽
 watch(
   loginField,
   (newLogin) => {
@@ -71,20 +99,25 @@ const handleRegister = async (registerField) => {
     if (registerField.password === confirmField.value.password) {
       await axios.post(`${api}users/sign_up`, registerField)
       isRegister.value = false
-      alert('註冊成功')
+      createMessage('註冊成功', true)
     } else {
       alert('密碼輸入不一樣')
     }
   } catch (error) {
     console.log('錯誤', error)
-    alert('註冊失敗')
+    createMessage(error.response.data.message, false)
   }
 }
 
+// 註冊監聽
 const errorRegisField = ref({
   email: '',
   password: '',
   nickname: '',
+})
+
+const errorConfirmField = ref({
+  password: '',
 })
 
 watch(
@@ -94,23 +127,44 @@ watch(
     if (!emailPattern.test(newRegis.email)) {
       errorRegisField.value.email = '請輸入正確的 E-mail 格式'
     } else {
-      newRegis.value.email = ''
+      errorRegisField.value.email = ''
     }
 
-    if (newRegis.length < 2) {
-      errorRegisField.value.nickname = '請至少輸入 2 個字'
+    if (newRegis.nickname.length < 2) {
+      errorRegisField.value.nickname = '暱稱請至少需 2 個字'
     } else {
       errorRegisField.value.nickname = ''
+    }
+
+    if (newRegis.password.length < 6) {
+      errorRegisField.value.password = '密碼至少需 6 碼'
+    } else {
+      errorRegisField.value.password = ''
     }
   },
 
   { deep: true },
 )
 
+watch(
+  confirmField,
+  (newConfirm) => {
+    console.log(newConfirm.password, registerField.value.password)
 
+    if (newConfirm.password !== registerField.value.password) {
+      errorConfirmField.value.password = '請輸入相同密碼'
+    } else if (!newConfirm.value.password || !newConfirm.value) {
+      errorConfirmField.value.password = ''
+    } else {
+      errorConfirmField.value.password = ''
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <template>
+  <MessageToast />
   <div id="loginPage" class="bg-yellow">
     <div class="container loginPage vhContainer">
       <div class="side">
@@ -168,13 +222,15 @@ watch(
             v-model="confirmField.password"
             required
           />
+          <span v-if="errorConfirmField.confirmPassword">{{
+            errorConfirmField.confirmPassword
+          }}</span>
           <input
             class="formControls_btnSubmit"
             type="button"
             @click="handleRegister(registerField)"
             value="註冊帳號"
           />
-          <span v-if="errorRegisField.password">{{ errorRegisField.password }}</span>
           <a class="formControls_btnLink" href="#" @click.prevent="toggleRegister">登入</a>
         </form>
       </div>
