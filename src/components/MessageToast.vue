@@ -15,7 +15,7 @@ const closeToast = (id) => {
   <div class="position-fixed top-10 end-0" style="z-index: 1050">
     <div
       class="toast show align-items-center  border-0 mb-2"
-      :class="message.status ? 'bg-toast' : 'bg-danger'"
+      :class="message.status ? 'bg-toast' : 'bg-error'"
       v-for="message in messageText"
       :key="message.id"
     >
@@ -34,5 +34,8 @@ const closeToast = (id) => {
 <style scoped>
 .bg-toast{
   background-color: #C4E1E1;
+}
+.bg-error{
+  background-color: #FF9797;
 }
 </style>

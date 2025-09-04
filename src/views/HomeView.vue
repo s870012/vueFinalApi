@@ -107,13 +107,13 @@ const handleRegister = async (registerField) => {
       isRegister.value = false
       createMessage('註冊成功', true)
     } else {
-      alert('密碼輸入不一樣')
+      createMessage('密碼輸入不相同', false)
     }
   } catch (error) {
     console.log('錯誤', error)
     createMessage(error.response.data.message, false)
   } finally {
-    isLoading.value = true
+    isLoading.value = false
   }
 }
 
@@ -157,11 +157,9 @@ watch(
 watch(
   confirmField,
   (newConfirm) => {
-    console.log(newConfirm.password, registerField.value.password)
-
     if (newConfirm.password !== registerField.value.password) {
-      errorConfirmField.value.password = '輸入密碼不相同'
-    } else if (!newConfirm.value.password || !newConfirm.value) {
+      errorConfirmField.value.password = '密碼輸入不相同'
+    } else if (!newConfirm.password || !newConfirm.value) {
       errorConfirmField.value.password = ''
     } else {
       errorConfirmField.value.password = ''
@@ -231,8 +229,8 @@ watch(
             v-model="confirmField.password"
             required
           />
-          <span v-if="errorConfirmField.confirmPassword">{{
-            errorConfirmField.confirmPassword
+          <span v-if="errorConfirmField.password">{{
+            errorConfirmField.password
           }}</span>
           <input
             class="formControls_btnSubmit"
