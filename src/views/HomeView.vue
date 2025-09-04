@@ -1,6 +1,7 @@
 <script setup>
 import axios from 'axios'
 import MessageToast from '@/components/MessageToast.vue'
+import TheLoading from '@/components/TheLoading.vue'
 
 import { ref, watch, provide } from 'vue'
 import { useRouter } from 'vue-router'
@@ -11,6 +12,7 @@ const router = useRouter()
 // message
 const messageText = ref([])
 const isShow = ref(false)
+const isLoading = ref(false)
 
 provide('message', {
   messageText,
@@ -57,6 +59,7 @@ const errorLoginField = ref({
 
 const loginRes = ref('')
 const handleLogin = async (loginField) => {
+  isLoading.value = true
   try {
     const res = await axios.post(`${api}users/sign_in`, loginField)
     loginRes.value = res.data.token
@@ -65,6 +68,8 @@ const handleLogin = async (loginField) => {
   } catch (error) {
     console.log('錯誤', error)
     createMessage('登入失敗', false)
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -95,6 +100,7 @@ const confirmField = ref({
 })
 
 const handleRegister = async (registerField) => {
+  isLoading.value = true
   try {
     if (registerField.password === confirmField.value.password) {
       await axios.post(`${api}users/sign_up`, registerField)
@@ -106,6 +112,8 @@ const handleRegister = async (registerField) => {
   } catch (error) {
     console.log('錯誤', error)
     createMessage(error.response.data.message, false)
+  } finally {
+    isLoading.value = true
   }
 }
 
@@ -131,7 +139,7 @@ watch(
     }
 
     if (newRegis.nickname.length < 2) {
-      errorRegisField.value.nickname = '暱稱請至少需 2 個字'
+      errorRegisField.value.nickname = '暱稱至少需 2 個字'
     } else {
       errorRegisField.value.nickname = ''
     }
@@ -152,7 +160,7 @@ watch(
     console.log(newConfirm.password, registerField.value.password)
 
     if (newConfirm.password !== registerField.value.password) {
-      errorConfirmField.value.password = '請輸入相同密碼'
+      errorConfirmField.value.password = '輸入密碼不相同'
     } else if (!newConfirm.value.password || !newConfirm.value) {
       errorConfirmField.value.password = ''
     } else {
@@ -165,6 +173,7 @@ watch(
 
 <template>
   <MessageToast />
+  <TheLoading :isLoading="isLoading" />
   <div id="loginPage" class="bg-yellow">
     <div class="container loginPage vhContainer">
       <div class="side">

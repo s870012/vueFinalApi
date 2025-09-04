@@ -12,10 +12,10 @@ const closeToast = (id) => {
 </script>
 
 <template>
-  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="position-fixed top-10 end-0" style="z-index: 1050">
     <div
-      class="toast show align-items-center text-white border-0 mb-2"
-      :class="message.status ? 'bg-success' : 'bg-danger'"
+      class="toast show align-items-center  border-0 mb-2"
+      :class="message.status ? 'bg-toast' : 'bg-danger'"
       v-for="message in messageText"
       :key="message.id"
     >
@@ -23,10 +23,16 @@ const closeToast = (id) => {
         <div class="toast-body">{{ message.text }}</div>
         <button
           type="button"
-          class="btn-close btn-close-white me-2 m-auto"
+          class="btn-close me-2 m-auto"
           @click="closeToast(message.id)"
         ></button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.bg-toast{
+  background-color: #C4E1E1;
+}
+</style>

@@ -3,6 +3,7 @@ import axios from 'axios'
 
 import TheHeader from '@/components/TheHeader.vue'
 import MessageToast from '@/components/MessageToast.vue'
+import TheLoading from '@/components/TheLoading.vue'
 import empty from '@/assets/images/empty 1.png'
 
 import { ref, onMounted, computed, provide } from 'vue'
@@ -14,6 +15,7 @@ const router = useRouter()
 // message
 const messageText = ref([])
 const isShow = ref(false)
+const isLoading = ref(false)
 
 provide('message', {
   messageText,
@@ -41,6 +43,7 @@ const createMessage = (text, status) => {
 const token = document.cookie.replace(/(?:^|.*;\s*)TodoToken\s*=\s*([^;]*).*$/i, '$1')
 const nickname = ref('')
 onMounted(async () => {
+  isLoading.value = true
   try {
     const res = await axios.get(`${api}users/checkout`, {
       headers: {
@@ -53,12 +56,14 @@ onMounted(async () => {
   } catch (error) {
     console.log('錯誤', error)
     router.push('/')
+  } finally {
+    isLoading.value = false
   }
 })
 
 // 取得Todo
 const todoList = ref([])
-const getTodo = async (status) => {
+const getTodo = async () => {
   try {
     const res = await axios.get(`${api}todos/`, {
       headers: {
@@ -66,15 +71,27 @@ const getTodo = async (status) => {
       },
     })
     todoList.value = res.data.data
-    if (status === 'finish') {
-      todoList.value = todoList.value.filter((todo) => todo.status !== false)
-    } else if (status === 'finishYet') {
-      todoList.value = todoList.value.filter((todo) => todo.status !== true)
-    }
   } catch (error) {
     console.log(error)
   }
 }
+
+const tabList = [
+  {label:'全部', value:'all'},
+  {label:'待完成', value:'pending'},
+  {label:'已完成', value:'finish'},
+]
+const currentTab = ref('all')
+
+const filterTodo = computed(() => {
+  if (currentTab.value === 'pending') {
+    return todoList.value.filter((item) => item.status === false)
+  } else if (currentTab.value === 'finish') {
+    return todoList.value.filter((item) => item.status === true)
+  } else {
+    return todoList.value
+  }
+})
 
 // 待完成個數
 const todoNum = computed(() => {
@@ -86,6 +103,7 @@ const todoContent = ref({
   content: '',
 })
 const addTodo = async (todoContent) => {
+  isLoading.value = true
   try {
     await axios.post(`${api}todos/`, todoContent, {
       headers: {
@@ -98,11 +116,14 @@ const addTodo = async (todoContent) => {
   } catch (error) {
     console.log(error)
     createMessage('新增失敗', false)
+  } finally {
+    isLoading.value = false
   }
 }
 
 // 刪除 Todo
 const deleteTodo = async (id) => {
+  isLoading.value = true
   try {
     await axios.delete(`${api}todos/${id}`, {
       headers: {
@@ -114,11 +135,14 @@ const deleteTodo = async (id) => {
   } catch (error) {
     console.log(error)
     createMessage('刪除失敗', false)
+  } finally {
+    isLoading.value = false
   }
 }
 
 // todo status
 const toggleTodo = async (todo) => {
+  isLoading.value = true
   try {
     const res = await axios.patch(`${api}todos/${todo.id}/toggle`, null, {
       headers: {
@@ -126,15 +150,19 @@ const toggleTodo = async (todo) => {
       },
     })
     todo.status = res.data.status
+    getTodo()
     createMessage('代辦事項完成', true)
   } catch (error) {
     console.log(error)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
 
 <template>
   <MessageToast />
+  <TheLoading :isLoading="isLoading" />
   <div id="todoListPage" class="bg-half">
     <TheHeader :token="token" :nickname="nickname" />
     <div class="container todoListPage vhContainer">
@@ -145,19 +173,17 @@ const toggleTodo = async (todo) => {
             <i class="bi bi-plus-lg"></i>
           </a>
         </div>
-        <div v-if="todoList.length < 1">
+        <div v-if="todoList.length === 0">
           <p class="text-center fs-5 mt-5 mb-4">目前無代辦事項</p>
           <img :src="empty" alt="" class="w-auto d-block mx-auto object-fit-cover" />
         </div>
         <div class="todoList_list" v-else>
           <ul class="todoList_tab">
-            <li><a href="#" class="active" @click.prevent="getTodo('all')">全部</a></li>
-            <li><a href="#" class="active" @click.prevent="getTodo('finishYet')">待完成</a></li>
-            <li><a href="#" class="active" @click.prevent="getTodo('finish')">已完成</a></li>
+            <li v-for="tab in tabList" :key="tab"><a href="#" :class="currentTab === tab.value ? 'active' :''" @click.prevent="currentTab = tab.value">{{ tab.label }}</a></li>
           </ul>
           <div class="todoList_items">
             <ul class="todoList_item">
-              <li v-for="todo in todoList" :key="todo.id">
+              <li v-for="todo in filterTodo" :key="todo.id">
                 <label class="todoList_label">
                   <input
                     class="todoList_input"
@@ -182,3 +208,4 @@ const toggleTodo = async (todo) => {
     </div>
   </div>
 </template>
+

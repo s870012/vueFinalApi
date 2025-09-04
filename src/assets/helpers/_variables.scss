@@ -425,7 +425,10 @@ $spacers: (
 // scss-docs-start position-map
 $position-values: (
   0: 0,
+  10: 10%,
+  25: 25%,
   50: 50%,
+  75: 75%,
   100: 100%
 ) !default;
 // scss-docs-end position-map
