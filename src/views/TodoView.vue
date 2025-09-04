@@ -151,7 +151,7 @@ const toggleTodo = async (todo) => {
     })
     todo.status = res.data.status
     getTodo()
-    createMessage('代辦事項完成', true)
+    createMessage('狀態更新', true)
   } catch (error) {
     console.log(error)
   } finally {
@@ -189,7 +189,6 @@ const toggleTodo = async (todo) => {
                     class="todoList_input"
                     type="checkbox"
                     @click="toggleTodo(todo)"
-                    :disabled="todo.status === true"
                     :checked="todo.status === true"
                   />
                   <span>{{ todo.content }}</span>
